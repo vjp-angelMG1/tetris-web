@@ -16,7 +16,7 @@ const TetrisGame = ({ onGameOver }) => {
       
       {/* Tablero reducido y adaptado para colores hexadecimales */}
       <div 
-        className="grid bg-gray-900 border-2 border-gray-600 p-0.5 gap-px rounded"
+        className="grid bg-gray-900 border-2 border-gray-400 p-0.5 gap-px rounded"
         style={{ gridTemplateColumns: `repeat(10, 1rem)` }} // 1rem hace las celdas más pequeñas
       >
         {tableroVisual.map((row, y) => 
