@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 const ANCHO = 10;
 const ALTO = 20;
 
-const TETROMINOS = {
+const TETROMINOS = { 
   I: { shape: [[1, 1, 1, 1]], color: '#22d3ee' },
   O: { shape: [[1, 1], [1, 1]], color: '#facc15' },
   T: { shape: [[0, 1, 0], [1, 1, 1]], color: '#a855f7' },
