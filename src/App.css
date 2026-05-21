@@ -309,7 +309,7 @@ button:active:not(:disabled) { transform: scale(0.95); }
   }
 
   .touch-controls {
-    display: grid;
+    display: grid; 
   }
 
   .ranking-panel {
