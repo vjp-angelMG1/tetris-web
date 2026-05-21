@@ -46,4 +46,4 @@ const TetrisGame = ({ onGameOver }) => {
   );
 };
 
-export default TetrisGame;
+export default TetrisGame; 
