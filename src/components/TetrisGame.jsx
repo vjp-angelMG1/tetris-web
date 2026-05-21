@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTetris } from '../hooks/useTetris';
+import { useTetris } from '../hooks/useTetris';  
 
 const TetrisGame = ({ onGameOver }) => {
   const { tableroVisual, puntuacion, gameOver, reiniciarJuego } = useTetris();
