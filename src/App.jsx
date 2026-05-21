@@ -83,6 +83,7 @@ function App() {
           {status && <div className="message">{status}</div>}
         </section>
 
+        {/* RANKING INTEGRADO AQUÍ PARA EVITAR ERRORES DE IMPORTACIÓN */}
         <section className="ranking-panel">
           <h2>Ranking Firestore</h2>
           <div className="ranking-list">
