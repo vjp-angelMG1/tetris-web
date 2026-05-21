@@ -4,7 +4,9 @@ import { useTetris } from './hooks/useTetris'
 import { RankingService } from './services/data'
 
 function App() {
-  const { tableroVisual, puntuacion, gameOver, reiniciarJuego } = useTetris()
+  const [difficulty, setDifficulty] = useState('medium') // 🟢 Estado de dificultad
+  const { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza } = useTetris({ difficulty })
+  
   const [playerName, setPlayerName] = useState('Jugador')
   const [ranking, setRanking] = useState([])
   const [status, setStatus] = useState('')
@@ -39,7 +41,7 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Tetris Web</h1>
+        <h1>Tetris <span>Web</span></h1>
         <p>Juego web puro + Firebase Firestore</p>
       </header>
 
@@ -47,7 +49,29 @@ function App() {
         <section className="game-panel">
           <div className="status-bar">
             <div>Score: <strong>{puntuacion}</strong></div>
-            <div>{gameOver ? 'Game Over' : 'En juego'}</div>
+            <div className={gameOver ? 'game-over' : 'en-juego'}>{gameOver ? 'Game Over' : 'En juego'}</div>
+          </div>
+
+          {/* 🟢 SELECTOR DE DIFICULTAD 🟢 */}
+          <div className="difficulty-selector">
+            <button 
+              className={difficulty === 'easy' ? 'diff-active' : ''} 
+              onClick={() => setDifficulty('easy')}
+            >
+              Fácil
+            </button>
+            <button 
+              className={difficulty === 'medium' ? 'diff-active' : ''} 
+              onClick={() => setDifficulty('medium')}
+            >
+              Media
+            </button>
+            <button 
+              className={difficulty === 'hard' ? 'diff-active' : ''} 
+              onClick={() => setDifficulty('hard')}
+            >
+              Difícil
+            </button>
           </div>
 
           <div className="board">
@@ -57,35 +81,43 @@ function App() {
                   <div
                     key={`${y}-${x}`}
                     className="cell"
-                    style={{ backgroundColor: cell || 'transparent', borderColor: cell ? '#111' : '#555' }}
+                    style={{ backgroundColor: cell || 'transparent', borderColor: cell ? '#111' : '#333' }}
                   />
                 ))}
               </div>
             ))}
           </div>
 
-          <div className="actions">
-            <button onClick={reiniciarJuego}>Reiniciar juego</button>
-            <button onClick={handleSaveScore} disabled={saving || puntuacion === 0}>
-              Guardar puntuación
-            </button>
-          </div>
+          <div className="controls-section">
+            <div className="actions">
+              <button onClick={reiniciarJuego}>Reiniciar</button>
+              <button onClick={handleSaveScore} disabled={saving || puntuacion === 0}>
+                {saving ? 'Guardando...' : 'Guardar Puntos'}
+              </button>
+            </div>
 
-          <div className="form-row">
-            <label htmlFor="playerName">Nombre:</label>
-            <input
-              id="playerName"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Jugador"
-            />
+            <div className="form-row">
+              <label htmlFor="playerName">Nombre:</label>
+              <input
+                id="playerName"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                placeholder="Jugador"
+              />
+            </div>
+            {status && <div className="message">{status}</div>}
+            
+            <div className="touch-controls">
+              <button onClick={() => moverPieza(-1, 0)}>←</button>
+              <button onClick={() => rotarPieza()}>↑</button>
+              <button onClick={() => moverPieza(0, 1)}>↓</button>
+              <button onClick={() => moverPieza(1, 0)}>→</button>
+            </div>
           </div>
-          {status && <div className="message">{status}</div>}
         </section>
 
-        {/* RANKING INTEGRADO AQUÍ PARA EVITAR ERRORES DE IMPORTACIÓN */}
         <section className="ranking-panel">
-          <h2>Ranking Firestore</h2>
+          <h2>🏆 Ranking</h2>
           <div className="ranking-list">
             {ranking.length === 0 && <p>No hay puntuaciones todavía.</p>}
             <ol>
@@ -101,7 +133,15 @@ function App() {
       </main>
 
       <footer className="footer">
-        Usa las flechas para mover la pieza y la flecha arriba para rotar.
+        <div className="footer-links">
+          <a href="#" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>
+          <span>•</span>
+          <a href="#" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a>
+          <span>•</span>
+          <a href="#" target="_blank" rel="noopener noreferrer">Contacto</a>
+        </div>
+        <p>© {new Date().getFullYear()} Tetris Web. Todos los derechos reservados.</p>
+        <p>Hecho por <strong>Ángel Montero Gregorio</strong></p>
       </footer>
     </div>
   )

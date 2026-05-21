@@ -1,26 +1,26 @@
 # 🎮 Tetris Web
-Un clon del clásico Tetris desarrollado con React y Vite, con un sistema de clasificación en tiempo real guardado en la nube mediante Firebase Firestore. Diseñado con una arquitectura modular y escalable.
+¡Hola! Este es mi clon del clásico Tetris desarrollado 100% en web, sin usar motores gráficos como Unity o Unreal. Todo está construido con React puro, JavaScript y un poco de matemáticas para las colisiones. Además, cuenta con un sistema de clasificación en tiempo real guardado en la nube mediante Firebase Firestore.
 
-![Tetris Web](https://Tetris Web Reaccionar Vite Firebase
+Reaccionar Vite Firebase
 
 ## 🚀 Características principales
-Juego Clásico: Físicas y rotaciones clásicas del Tetris original.
-Sistema de puntuación: Gana puntos por cada línea completada.
-Ranking en Tiempo Real: Guarda tu puntuación y compite contra otros jugadores gracias a la integración con Firebase Firestore.
-Diseño Responsive: Interfaz adaptable a diferentes tamaños de pantalla usando Tailwind CSS.
+Juego Clásico Web: Físicas, gravedad y rotaciones del Tetris originales programadas desde cero.
+Selector de Dificultad: ¿Te resulta fácil? Cambia entre Fácil, Media y Difícil y la velocidad de caída cambiará al instante.
+Sistema de puntuación: Gana puntos por cada línea que logres completar.
+Ranking en Tiempo Real: Guarda tu puntuación con tu nombre y compite contra otros jugadores gracias a la integración con Firebase Firestore.
+Diseño Responsive: Interfaz adaptable a PC, tablets y móviles (incluye botones táctiles para jugar en el smartphone).
 Arquitectura Limpia: Separación de lógica de negocio (Hooks), interfaz (Componentes) y servicios (Firebase).
-## 🛠️ Tecnologías Utilizadas
-**InterfazFrontend: React 18+ (Vite)
-Estilos: Tailwind CSS
+## 🛠️ Tecnologías utilizadas
+Frontend: React 18+ (con Vite)
+Estilos: CSS puro con variables personalizadas (Custom Properties)
 Backend / Base de Datos: Firebase (Firestore)
 Control de versiones: Git y GitHub
-## 📂Arquitectura del Proyecto
-El proyecto sigue una arquitectura basada en responsabilidades, separando la lógica del juego de la interfaz y la base de datos:
+## 📂 Arquitectura del proyecto
+El proyecto sigue una arquitectura basada en responsabilidades, separando la lógica del juego de la interfaz y la base de datos para que sea escalable y fácil de mantener:
 
 texto
 
 src/
-├── components/     # Componentes visuales (TetrisGame.jsx, Leaderboard.jsx)
 ├── config/         # Configuración de Firebase (firebase.js)
 ├── hooks/          # Lógica pura del juego (useTetris.js)
 ├── models/         # Definición de tipos de datos (JSDoc - Score.js)
@@ -28,10 +28,11 @@ src/
 │   └── data/       # Servicios separados por dominio
 │       ├── rankingService.js
 │       └── index.js
-├── App.jsx         # Enrutamiento y layout principal
+├── App.jsx         # Layout principal y componentes integrados
+├── App.css         # Estilos visuales y variables CSS
 └── main.jsx        # Punto de entrada de la aplicación
-## ⚙️ Instalación y Puesta en Marcha
-Sigue estos pasos para ejecutar el proyecto en tu máquina local:
+## ⚙️ Instalación y puesta en marcha
+Si quieres echarle un vistazo en tu máquina local, sigue estos pasos:
 
 * 1. Clonar el repositorio
 intento
@@ -43,10 +44,10 @@ intento
 
 npm install
 * 3. Configurar Firebase (Variables de Entorno)
-El proyecto requiere cred
+El proyecto requiere credenciales de Firebase para conectarse con el ranking. Por seguridad, estas credenciales no están en el repositorio.
 
 Crea un archivo llamado en la raíz del proyecto (donde está )..envpackage.json
-Agrega tus credenciales de Firebase con el prefijo (necesario para Vite):VITE_
+Agrega tus credenciales de Firebase con el prefijo (necesario para que Vite lo lea):VITE_
 entorno
 
 VITE_FIREBASE_API_KEY=tu_api_key_aqui
@@ -60,23 +61,21 @@ VITE_FIREBASE_APP_ID=tu_app_id
 * 4. Ejecutar la aplicación
 intento
 
+**npm run dev**
+La aplicación se abrirá automáticamente en http://localhost:5173. y tambien se puede ver en: https://tetris-web-5a724.web.app/#
 
-
-***npm run dev***
-
-
-La aplicación se abrirá automáticamente enhttp://localhost:5173.
-
-# 🎮 Controles del Juego
+## 🎮 Controles del juego
 Tecla
 Acción
-* ⬅️ (Flecha Izq.)	Mudanzas Izquierda
-* ➡️ (Flecha Der.)	Mudanza Derecha
-* ⬇️ (Flecha Abajo)	Caída rápida
-* ⬆️ (Flecha Arriba)	Rotar Pieza
+⬅️ (Flecha Izq.)	Mover izquierda
+➡️ (Flecha Der.)	Mover derecha
+⬇️ (Flecha Abajo)	Caída rápida
+⬆️ (Flecha Arriba)	Rotar pieza
 
-## 💾 Base de Datos (Firestore)
-El juego guarda las evaluaciones en una colección llamada **`rankingsrankingses Firebase Firestore. No es necesario crear la colección manualmente; el servicio la creará automáticamente al guardar la primera puntuación.rankingService.js
+(En los dispositivos móviles aparecerán botones táctiles en la pantalla).
+
+## 💾 Base de datos (Firestore)
+El juego guarda las evaluaciones en una colección llamada en Firebase Firestore. No es necesario crear la colección manualmente; el servicio la creará automáticamente al guardar la primera puntuación.rankingsrankingService.js
 
 Estructura del documento en Firestore:
 
@@ -84,10 +83,9 @@ json
 
 {
   "playerName": "Ángel",
-  "score": 300,
-  "date": "Timestamp de Firebase"
+  "score": 300
 }
 ## 👨‍💻 Autor
 Ángel Montero Gregorio
 
-Proyecto desarrollado como práctica de arquitectura de software, integración de Firebase y lógica de estado en React puro.
+Proyecto desarrollado como práctica de arquitectura de software, integración de Firebase y lógica de estado en React puro. ¡Cualquier comentario es bienvenido!
