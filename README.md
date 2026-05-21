@@ -60,7 +60,11 @@ VITE_FIREBASE_APP_ID=tu_app_id
 * 4. Ejecutar la aplicación
 intento
 
-npm run dev
+
+
+***npm run dev***
+
+
 La aplicación se abrirá automáticamente enhttp://localhost:5173.
 
 # 🎮 Controles del Juego
