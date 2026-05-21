@@ -75,9 +75,10 @@
 .en-juego { color: #4ade80; }
 .game-over { color: #f87171; animation: pulse 1s infinite; }
 
-/* 🟢 BOTONES DE DIFICULTAD 🟢 */
+/* 🟢 DIFICULTAD PEQUEÑA Y A LA IZQUIERDA 🟢 */
 .difficulty-selector {
   display: flex;
+  justify-content: flex-start; /* Alineado a la izquierda */
   gap: 8px;
   margin-bottom: 12px;
   flex-shrink: 0;
@@ -86,10 +87,10 @@
 .difficulty-selector button {
   background: var(--color-dark);
   border: 2px solid var(--color-cell-border);
-  padding: 6px 12px;
-  font-size: 0.85rem;
-  border-radius: 8px;
-  flex: 1;
+  padding: 4px 12px; /* Más pequeño */
+  font-size: 0.8rem; /* Texto más pequeño */
+  border-radius: 6px;
+  width: auto; /* No ocupa todo el ancho */
 }
 
 .difficulty-selector button:hover {
@@ -135,36 +136,21 @@
   margin-top: 15px;
 }
 
-.actions {
+/* 🟢 NOMBRE A LA IZQUIERDA, BOTONES A LA DERECHA 🟢 */
+.controls-wrapper {
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-button {
-  border: none;
-  border-radius: 10px;
-  padding: 10px 15px;
-  cursor: pointer;
-  background: var(--color-primary);
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.9rem;
-  transition: transform 0.1s, background 0.2s;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
   width: 100%;
 }
-
-button:disabled { opacity: 0.5; cursor: not-allowed; }
-button:hover:not(:disabled):not(.diff-active) { background: var(--color-primary-hover); }
-button:active:not(:disabled) { transform: scale(0.95); }
 
 .form-row {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
-  width: 100%;
+  flex: 1; /* Ocupa el espacio disponible */
 }
 
 label {
@@ -174,13 +160,13 @@ label {
 }
 
 input {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
   border: 1px solid var(--color-cell-border);
   background: var(--color-dark);
   color: var(--color-text-main);
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 input:focus {
@@ -188,23 +174,49 @@ input:focus {
   border-color: var(--color-primary);
 }
 
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0; /* Los botones no se encogen */
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 15px;
+  cursor: pointer;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: transform 0.1s, background 0.2s;
+  width: auto; /* Los botones no ocupan todo el ancho por defecto */
+  white-space: nowrap; /* Evita que el texto del botón salte de línea */
+}
+
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button:hover:not(:disabled):not(.diff-active) { background: var(--color-primary-hover); }
+button:active:not(:disabled) { transform: scale(0.95); }
+
 .message {
   color: var(--color-primary);
-  font-size: 0.85rem;
-  text-align: center;
+  font-size: 0.8rem;
+  text-align: right;
+  margin-top: 5px;
 }
 
 .touch-controls {
   display: none;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .touch-controls button {
   font-size: 1.5rem;
   padding: 15px 0;
   border-radius: 12px;
+  width: 100%; /* En móviles sí queremos que los táctiles ocupen todo el ancho */
 }
 
 .ranking-panel h2 {
@@ -280,6 +292,20 @@ input:focus {
   .board {
     max-height: 50vh;
     max-width: 350px;
+  }
+
+  /* En móviles, apilamos el nombre y los botones */
+  .controls-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    justify-content: center;
+  }
+  
+  .actions button {
+    flex: 1; /* Botones ocupan la mitad del ancho cada uno en móvil */
   }
 
   .touch-controls {

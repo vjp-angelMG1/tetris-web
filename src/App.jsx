@@ -4,8 +4,8 @@ import { useTetris } from './hooks/useTetris'
 import { RankingService } from './services/data'
 
 function App() {
-  const [difficulty, setDifficulty] = useState('medium') // 🟢 Estado de dificultad
-  const { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza } = useTetris({ difficulty })
+  const [difficulty, setDifficulty] = useState('medium')
+  const { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza } = useTetris(difficulty)
   
   const [playerName, setPlayerName] = useState('Jugador')
   const [ranking, setRanking] = useState([])
@@ -52,7 +52,7 @@ function App() {
             <div className={gameOver ? 'game-over' : 'en-juego'}>{gameOver ? 'Game Over' : 'En juego'}</div>
           </div>
 
-          {/* 🟢 SELECTOR DE DIFICULTAD 🟢 */}
+          {/* 🟢 DIFICULTAD ARRIBA IZQUIERDA 🟢 */}
           <div className="difficulty-selector">
             <button 
               className={difficulty === 'easy' ? 'diff-active' : ''} 
@@ -89,22 +89,25 @@ function App() {
           </div>
 
           <div className="controls-section">
-            <div className="actions">
-              <button onClick={reiniciarJuego}>Reiniciar</button>
-              <button onClick={handleSaveScore} disabled={saving || puntuacion === 0}>
-                {saving ? 'Guardando...' : 'Guardar Puntos'}
-              </button>
+            {/* 🟢 NOMBRE Y BOTONES ABAJO 🟢 */}
+            <div className="controls-wrapper">
+              <div className="form-row">
+                <label htmlFor="playerName">Nombre:</label>
+                <input
+                  id="playerName"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  placeholder="Jugador"
+                />
+              </div>
+              <div className="actions">
+                <button onClick={reiniciarJuego}>Reiniciar</button>
+                <button onClick={handleSaveScore} disabled={saving || puntuacion === 0}>
+                  {saving ? '...' : 'Guardar'}
+                </button>
+              </div>
             </div>
-
-            <div className="form-row">
-              <label htmlFor="playerName">Nombre:</label>
-              <input
-                id="playerName"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                placeholder="Jugador"
-              />
-            </div>
+            
             {status && <div className="message">{status}</div>}
             
             <div className="touch-controls">
