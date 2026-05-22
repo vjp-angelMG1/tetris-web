@@ -167,7 +167,7 @@ button {
 .score-display {
   font-size: 1.1rem;
 }
-.score-display strong {
+.score-display strong {  
   color: var(--color-primary);
   font-size: 1.3rem;
 }
