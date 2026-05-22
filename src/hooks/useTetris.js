@@ -16,6 +16,19 @@ const TETROMINOS = {
 const crearTableroVacio = () => Array.from(Array(ALTO), () => new Array(ANCHO).fill(0));
 const piezaAleatoria = () => TETROMINOS[Object.keys(TETROMINOS)[Math.floor(Math.random() * Object.keys(TETROMINOS).length)]];
 
+/**
+ * Hook personalizado que gestiona toda la lógica del estado del juego Tetris.
+ * Controla el tablero, las piezas, las colisiones, la puntuación y la velocidad progresiva.
+ * 
+ * @param {('easy'|'medium'|'hard')} [difficulty='medium'] - La dificultad inicial del juego que determina la velocidad base.
+ * @returns {Object} El estado y las funciones del juego.
+ * @returns {Array<Array<string|number>>} returns.tableroVisual - Matriz 2D representando el tablero actual con colores.
+ * @returns {number} returns.puntuacion - Puntuación actual del jugador.
+ * @returns {boolean} returns.gameOver - Indica si el juego ha terminado.
+ * @returns {Function} returns.reiniciarJuego - Función para reiniciar el estado del juego.
+ * @returns {Function} returns.moverPieza - Función para mover la pieza en el tablero.
+ * @returns {Function} returns.rotarPieza - Función para rotar la pieza actual.
+ */
 export const useTetris = (difficulty = 'medium') => {
   const [tablero, setTablero] = useState(crearTableroVacio());
   const [posPieza, setPosPieza] = useState({ x: 3, y: 0 });
@@ -23,10 +36,9 @@ export const useTetris = (difficulty = 'medium') => {
   const [gameOver, setGameOver] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
 
-  // 🟢 VELOCIDAD PROGRESIVA 🟢
+  /** Velocidad base según dificultad y reducción progresiva según puntuación */
   const speeds = { easy: 1000, medium: 700, hard: 350 };
   const baseSpeed = speeds[difficulty] || speeds.medium;
-  // Restamos 1.5ms por cada punto. Mínimo 100ms para que no sea imposible
   const currentSpeed = Math.max(100, baseSpeed - (puntuacion * 1.5));
 
   const comprobarColision = useCallback((nuevaPieza, nuevaPos) => {
@@ -84,7 +96,7 @@ export const useTetris = (difficulty = 'medium') => {
 
   useEffect(() => {
     if (gameOver) return;
-    const interval = setInterval(() => moverPieza(0, 1), currentSpeed); // Usa la velocidad dinámica
+    const interval = setInterval(() => moverPieza(0, 1), currentSpeed);
     return () => clearInterval(interval);
   }, [moverPieza, gameOver, currentSpeed]); 
 

@@ -2,12 +2,12 @@ import { db } from "../../config/firebase";
 import { collection, getDocs, addDoc, query, orderBy, limit } from "firebase/firestore";
 
 /**
- * Servicio para gestionar el ranking de puntuaciones en Firestore.
+ * Servicio para gestionar las operaciones CRUD de los rankings en Firestore.
  */
 const RankingService = {
   /**
-   * Obtiene el Top 10 de puntuaciones.
-   * @returns {Promise<Array<import('../../models/Score').Score>>}
+   * Obtiene el Top 10 de puntuaciones de la base de datos.
+   * @returns {Promise<Array<import('../../models/Score').Score>>} Array de puntuaciones ordenadas.
    */
   getTop10: async () => {
     try {
