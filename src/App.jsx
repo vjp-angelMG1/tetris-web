@@ -1,9 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import './App.css'
 import { useTetris } from './hooks/useTetris'
 import { RankingService } from './services/data'
 
-// 🟢 PANTALLA DE MENÚ PRINCIPAL 🟢
+// 🟢 FONDOS DE NATURALEZA (National Geographic Style) 🟢
+const backgrounds = [
+  'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80', // Bosque niebla
+  'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=1920&q=80', // Lago bosque
+  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1920&q=80', // Pradera verde
+  'https://images.unsplash.com/photo-1472214103451-9374bd1c749e?auto=format&fit=crop&w=1920&q=80', // Atardecer montaña
+  'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=1920&q=80'  // Selva tropical
+];
+
 const MenuScreen = ({ onStartGame, onViewRanking }) => {
   const [difficulty, setDifficulty] = useState('medium')
 
@@ -11,15 +19,16 @@ const MenuScreen = ({ onStartGame, onViewRanking }) => {
     <div className="menu-screen">
       <div className="menu-card">
         <h1>Tetris <span>Web</span></h1>
-        <p>Juego web puro + Firebase</p>
+        <p>Supervivencia y Naturaleza</p>
 
         <div className="menu-section">
-          <h3>Selecciona Dificultad</h3>
+          <h3>Selecciona Dificultad Inicial</h3>
           <div className="difficulty-selector">
             <button className={difficulty === 'easy' ? 'diff-active' : ''} onClick={() => setDifficulty('easy')}>Fácil</button>
             <button className={difficulty === 'medium' ? 'diff-active' : ''} onClick={() => setDifficulty('medium')}>Media</button>
             <button className={difficulty === 'hard' ? 'diff-active' : ''} onClick={() => setDifficulty('hard')}>Difícil</button>
           </div>
+          <p className="hint-text">La velocidad aumentará progresivamente según tu puntuación.</p>
         </div>
 
         <button className="btn-primary" onClick={() => onStartGame(difficulty)}>🎮 Nuevo Juego</button>
@@ -38,18 +47,39 @@ const MenuScreen = ({ onStartGame, onViewRanking }) => {
   )
 }
 
-// 🟢 PANTALLA DE JUEGO (LIMPIA, SOLO TABLERO) 🟢
 const GameScreen = ({ difficulty, onGoMenu }) => {
   const { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza } = useTetris(difficulty)
   const [showModal, setShowModal] = useState(false)
   const [playerName, setPlayerName] = useState('Jugador')
   const [saving, setSaving] = useState(false)
+  
+  // 🟢 TEMPORIZADOR 🟢
+  const [time, setTime] = useState(0)
+  const timerRef = useRef(null)
 
   useEffect(() => {
     if (gameOver) {
+      clearInterval(timerRef.current)
       setShowModal(true)
+    } else {
+      timerRef.current = setInterval(() => setTime(t => t + 1), 1000)
     }
+    return () => clearInterval(timerRef.current)
   }, [gameOver])
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0')
+    const s = (seconds % 60).toString().padStart(2, '0')
+    return `${m}:${s}`
+  }
+
+  // 🟢 FONDO DINÁMICO 🟢
+  const [currentBg, setCurrentBg] = useState(backgrounds[0])
+  useEffect(() => {
+    // Cambia de fondo cada 200 puntos
+    const index = Math.min(Math.floor(puntuacion / 200), backgrounds.length - 1)
+    setCurrentBg(backgrounds[index])
+  }, [puntuacion])
 
   const handleSaveAndRestart = async () => {
     if (!playerName.trim()) return
@@ -58,50 +88,58 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
     setSaving(false)
     setShowModal(false)
     reiniciarJuego()
+    setTime(0)
   }
 
   const handlePlayAgain = () => {
     setShowModal(false)
     reiniciarJuego()
+    setTime(0)
   }
 
   return (
-    <div className="game-screen">
-      <div className="game-top-bar">
-        <button className="btn-back" onClick={onGoMenu}>← Menú</button>
-        <div className="score-display">Score: <strong>{puntuacion}</strong></div>
-        <div className="difficulty-badge">{difficulty === 'easy' ? 'Fácil' : difficulty === 'medium' ? 'Media' : 'Difícil'}</div>
-      </div>
+    <div className="game-screen" style={{ backgroundImage: `url(${currentBg})` }}>
+      <div className="game-overlay">
+        <div className="game-top-bar">
+          <button className="btn-back" onClick={onGoMenu}>← Menú</button>
+          <div className="timer-display">⏱️ {formatTime(time)}</div>
+          <div className="score-display">Score: <strong>{puntuacion}</strong></div>
+          <div className="difficulty-badge">{difficulty === 'easy' ? 'Fácil' : difficulty === 'medium' ? 'Media' : 'Difícil'}</div>
+        </div>
 
-      <div className="board-container">
-        <div className="board">
-          {tableroVisual.map((row, y) => (
-            <div key={y} className="board-row">
-              {row.map((cell, x) => (
-                <div
-                  key={`${y}-${x}`}
-                  className="cell"
-                  style={{ backgroundColor: cell || 'transparent', borderColor: cell ? '#111' : '#333' }}
-                />
-              ))}
-            </div>
-          ))}
+        <div className="board-container">
+          <div className="board">
+            {tableroVisual.map((row, y) => (
+              <div key={y} className="board-row">
+                {row.map((cell, x) => (
+                  <div
+                    key={`${y}-${x}`}
+                    className="cell"
+                    style={{ backgroundColor: cell || 'rgba(0, 0, 0, 0.4)', borderColor: cell ? '#111' : 'rgba(255, 255, 255, 0.1)' }}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="touch-controls">
+          <button onClick={() => moverPieza(-1, 0)}>←</button>
+          <button onClick={() => rotarPieza()}>↑</button>
+          <button onClick={() => moverPieza(0, 1)}>↓</button>
+          <button onClick={() => moverPieza(1, 0)}>→</button>
         </div>
       </div>
 
-      <div className="touch-controls">
-        <button onClick={() => moverPieza(-1, 0)}>←</button>
-        <button onClick={() => rotarPieza()}>↑</button>
-        <button onClick={() => moverPieza(0, 1)}>↓</button>
-        <button onClick={() => moverPieza(1, 0)}>→</button>
-      </div>
-
-      {/* 🟢 MODAL DE GAME OVER 🟢 */}
+      {/* 🟢 MODAL GAME OVER 🟢 */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-card">
             <h2>💀 Game Over</h2>
-            <p>Tu puntuación: <strong className="score-highlight">{puntuacion}</strong></p>
+            <div className="modal-stats">
+              <p>Puntuación: <strong className="score-highlight">{puntuacion}</strong></p>
+              <p>Tiempo: <strong>{formatTime(time)}</strong></p>
+            </div>
             
             <div className="modal-form">
               <input
@@ -125,7 +163,6 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
   )
 }
 
-// 🟢 PANTALLA DE RANKING 🟢
 const RankingScreen = ({ onGoMenu }) => {
   const [ranking, setRanking] = useState([])
 
@@ -143,7 +180,7 @@ const RankingScreen = ({ onGoMenu }) => {
         <div className="ranking-header">
           <button className="btn-back" onClick={onGoMenu}>← Menú</button>
           <h2>🏆 Ranking Global</h2>
-          <div></div> {/* Spacer para centrar el título */}
+          <div></div>
         </div>
 
         <div className="ranking-list-full">
@@ -163,9 +200,8 @@ const RankingScreen = ({ onGoMenu }) => {
   )
 }
 
-// 🟢 COMPONENTE PRINCIPAL QUE CAMBIA DE PANTALLA 🟢
 export default function App() {
-  const [screen, setScreen] = useState('menu') // 'menu', 'game', 'ranking'
+  const [screen, setScreen] = useState('menu')
   const [gameDifficulty, setGameDifficulty] = useState('medium')
 
   const handleStartGame = (difficulty) => {
@@ -175,15 +211,9 @@ export default function App() {
 
   return (
     <>
-      {screen === 'menu' && (
-        <MenuScreen onStartGame={handleStartGame} onViewRanking={() => setScreen('ranking')} />
-      )}
-      {screen === 'game' && (
-        <GameScreen difficulty={gameDifficulty} onGoMenu={() => setScreen('menu')} />
-      )}
-      {screen === 'ranking' && (
-        <RankingScreen onGoMenu={() => setScreen('menu')} />
-      )}
+      {screen === 'menu' && <MenuScreen onStartGame={handleStartGame} onViewRanking={() => setScreen('ranking')} />}
+      {screen === 'game' && <GameScreen difficulty={gameDifficulty} onGoMenu={() => setScreen('menu')} />}
+      {screen === 'ranking' && <RankingScreen onGoMenu={() => setScreen('menu')} />}
     </>
   )
 }

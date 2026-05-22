@@ -16,20 +16,18 @@ const TETROMINOS = {
 const crearTableroVacio = () => Array.from(Array(ALTO), () => new Array(ANCHO).fill(0));
 const piezaAleatoria = () => TETROMINOS[Object.keys(TETROMINOS)[Math.floor(Math.random() * Object.keys(TETROMINOS).length)]];
 
-export const useTetris = ({ difficulty = 'medium' } = {}) => {
+export const useTetris = (difficulty = 'medium') => {
   const [tablero, setTablero] = useState(crearTableroVacio());
   const [posPieza, setPosPieza] = useState({ x: 3, y: 0 });
   const [pieza, setPieza] = useState(piezaAleatoria());
   const [gameOver, setGameOver] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
 
-  // 🟢 MAPA DE VELOCIDADES SEGÚN DIFICULTAD 🟢
-  const speeds = {
-    easy: 1000,
-    medium: 700,
-    hard: 350
-  };
-  const currentSpeed = speeds[difficulty] || speeds.medium;
+  // 🟢 VELOCIDAD PROGRESIVA 🟢
+  const speeds = { easy: 1000, medium: 700, hard: 350 };
+  const baseSpeed = speeds[difficulty] || speeds.medium;
+  // Restamos 1.5ms por cada punto. Mínimo 100ms para que no sea imposible
+  const currentSpeed = Math.max(100, baseSpeed - (puntuacion * 1.5));
 
   const comprobarColision = useCallback((nuevaPieza, nuevaPos) => {
     for (let y = 0; y < nuevaPieza.shape.length; y++) {
@@ -86,9 +84,9 @@ export const useTetris = ({ difficulty = 'medium' } = {}) => {
 
   useEffect(() => {
     if (gameOver) return;
-    const interval = setInterval(() => moverPieza(0, 1), currentSpeed); // 🟢 Usa la velocidad dinámica
+    const interval = setInterval(() => moverPieza(0, 1), currentSpeed); // Usa la velocidad dinámica
     return () => clearInterval(interval);
-  }, [moverPieza, gameOver, currentSpeed]); // 🟢 Añadido currentSpeed a las dependencias
+  }, [moverPieza, gameOver, currentSpeed]); 
 
   useEffect(() => {
     const handleKeyDown = (e) => {
