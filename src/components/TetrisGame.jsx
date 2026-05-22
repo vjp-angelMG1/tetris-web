@@ -20,7 +20,7 @@ const TetrisGame = ({ onGameOver }) => {
         style={{ gridTemplateColumns: `repeat(10, 1rem)` }} // 1rem hace las celdas más pequeñas
       >
         {tableroVisual.map((row, y) => 
-          row.map((cell, x) => (
+          row.map((cell, x) => (  
             <div 
               key={`${y}-${x}`} 
               className="w-4 h-4 rounded-sm" // w-4 h-4 hace los cuadrados pequeños
