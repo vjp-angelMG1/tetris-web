@@ -16,27 +16,14 @@ const TETROMINOS = {
 const crearTableroVacio = () => Array.from(Array(ALTO), () => new Array(ANCHO).fill(0));
 const piezaAleatoria = () => TETROMINOS[Object.keys(TETROMINOS)[Math.floor(Math.random() * Object.keys(TETROMINOS).length)]];
 
-/**
- * Hook personalizado que gestiona toda la lógica del estado del juego Tetris.
- * Controla el tablero, las piezas, las colisiones, la puntuación y la velocidad progresiva.
- * 
- * @param {('easy'|'medium'|'hard')} [difficulty='medium'] - La dificultad inicial del juego que determina la velocidad base.
- * @returns {Object} El estado y las funciones del juego.
- * @returns {Array<Array<string|number>>} returns.tableroVisual - Matriz 2D representando el tablero actual con colores.
- * @returns {number} returns.puntuacion - Puntuación actual del jugador.
- * @returns {boolean} returns.gameOver - Indica si el juego ha terminado.
- * @returns {Function} returns.reiniciarJuego - Función para reiniciar el estado del juego.
- * @returns {Function} returns.moverPieza - Función para mover la pieza en el tablero.
- * @returns {Function} returns.rotarPieza - Función para rotar la pieza actual.
- */
 export const useTetris = (difficulty = 'medium') => {
   const [tablero, setTablero] = useState(crearTableroVacio());
   const [posPieza, setPosPieza] = useState({ x: 3, y: 0 });
   const [pieza, setPieza] = useState(piezaAleatoria());
+  const [siguientePieza, setSiguientePieza] = useState(piezaAleatoria()); // 🆕 Estado para la siguiente pieza
   const [gameOver, setGameOver] = useState(false);
   const [puntuacion, setPuntuacion] = useState(0);
 
-  /** Velocidad base según dificultad y reducción progresiva según puntuación */
   const speeds = { easy: 1000, medium: 700, hard: 350 };
   const baseSpeed = speeds[difficulty] || speeds.medium;
   const currentSpeed = Math.max(100, baseSpeed - (puntuacion * 1.5));
@@ -75,11 +62,18 @@ export const useTetris = (difficulty = 'medium') => {
     setPuntuacion(prev => prev + (lineasBorradas * 100));
     setTablero(tableroFinal);
     
-    const nuevaPieza = piezaAleatoria();
+    // 🆕 La nueva pieza es la que teníamos guardada como siguiente
+    const nuevaPieza = siguientePieza;
     const nuevaPos = { x: 3, y: 0 };
-    if (comprobarColision(nuevaPieza, nuevaPos)) setGameOver(true);
-    else { setPieza(nuevaPieza); setPosPieza(nuevaPos); }
-  }, [tablero, pieza, posPieza, comprobarColision]);
+    
+    if (comprobarColision(nuevaPieza, nuevaPos)) {
+      setGameOver(true);
+    } else {
+      setPieza(nuevaPieza);
+      setPosPieza(nuevaPos);
+      setSiguientePieza(piezaAleatoria()); // 🆕 Generamos una nueva pieza para la vista previa
+    }
+  }, [tablero, pieza, posPieza, comprobarColision, siguientePieza]);
 
   const moverPieza = useCallback((dx, dy) => {
     if (gameOver) return;
@@ -116,6 +110,7 @@ export const useTetris = (difficulty = 'medium') => {
     setTablero(crearTableroVacio());
     setPosPieza({ x: 3, y: 0 });
     setPieza(piezaAleatoria());
+    setSiguientePieza(piezaAleatoria()); // 🆕 Reiniciamos también la siguiente pieza
     setGameOver(false);
     setPuntuacion(0);
   };
@@ -129,5 +124,6 @@ export const useTetris = (difficulty = 'medium') => {
     });
   }
 
-  return { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza };
+  // 🆕 Devolvemos siguientePieza
+  return { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza, siguientePieza };
 };

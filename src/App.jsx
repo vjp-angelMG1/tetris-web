@@ -48,53 +48,63 @@ const MenuScreen = ({ onStartGame, onViewRanking }) => {
 }
 
 const GameScreen = ({ difficulty, onGoMenu }) => { 
-  const { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza } = useTetris(difficulty)
+  // 🆕 Añadimos siguientePieza aquí
+  const { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza, siguientePieza } = useTetris(difficulty)
   const [showModal, setShowModal] = useState(false)
   const [playerName, setPlayerName] = useState('Jugador')
   const [saving, setSaving] = useState(false)
   
-  // 🟢 TEMPORIZADOR 🟢
   const [time, setTime] = useState(0)
   const timerRef = useRef(null)
 
-  // 🆕 DETECCIÓN AUTOMÁTICA DE DISPOSITIVO TÁCTIL 🆕
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
-    // Detecta si el dispositivo tiene pantalla táctil (móvil o tablet)
     const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     setIsTouchDevice(hasTouch);
   }, []);
 
-  // 🆕 LÓGICA TÁCTIL (Solo se activará si isTouchDevice es true) 🆕
   const touchStartRef = useRef({ x: 0, y: 0 });
-  const UMBRAL_SWIPE = 20; 
+  const lastTouchYRef = useRef(0);
+  const lastDropTime = useRef(0);
 
   const handleTouchStart = (e) => {
-    if (!isTouchDevice) return; // Si es PC, ignora el toque
+    if (!isTouchDevice) return;
     e.preventDefault(); 
     const touch = e.touches[0];
     touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    lastTouchYRef.current = touch.clientY;
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isTouchDevice) return;
+    e.preventDefault();
+    
+    const now = Date.now();
+    const touch = e.touches[0];
+    const deltaY = touch.clientY - lastTouchYRef.current;
+
+    if (deltaY > 15 && now - lastDropTime.current > 80) {
+      moverPieza(0, 1);
+      lastTouchYRef.current = touch.clientY;
+      lastDropTime.current = now;
+    }
   };
 
   const handleTouchEnd = (e) => {
-    if (!isTouchDevice) return; // Si es PC, ignora el toque
+    if (!isTouchDevice) return;
     e.preventDefault();
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
     const deltaY = touch.clientY - touchStartRef.current.y;
 
-    // Si el movimiento es muy corto, es un TAP (Rotar pieza)
-    if (Math.abs(deltaX) < UMBRAL_SWIPE && Math.abs(deltaY) < UMBRAL_SWIPE) {
+    if (Math.abs(deltaX) < 25 && Math.abs(deltaY) < 25) {
       rotarPieza();
       return;
     }
 
-    // Si el movimiento es largo, es un SWIPE (Mover pieza)
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
       moverPieza(deltaX > 0 ? 1 : -1, 0);
-    } else {
-      if (deltaY > 0) moverPieza(0, 1); 
     }
   };
 
@@ -114,7 +124,6 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
     return `${m}:${s}`
   }
 
-  // 🟢 FONDO DINÁMICO 🟢
   const [currentBg, setCurrentBg] = useState(backgrounds[0])
   useEffect(() => {
     const index = Math.min(Math.floor(puntuacion / 200), backgrounds.length - 1)
@@ -147,11 +156,45 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
           <div className="difficulty-badge">{difficulty === 'easy' ? 'Fácil' : difficulty === 'medium' ? 'Media' : 'Difícil'}</div>
         </div>
 
+        {/* 🆕 CUADRO DE SIGUIENTE PIEZA 🆕 */}
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
+          <div style={{ 
+            background: 'rgba(0, 0, 0, 0.6)', 
+            padding: '10px 20px', 
+            borderRadius: '8px', 
+            border: '2px solid rgba(255, 255, 255, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+          }}>
+            <span style={{ color: 'white', fontSize: '0.8rem', marginBottom: '8px', fontWeight: 'bold' }}>SIGUIENTE</span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '2rem' }}>
+              {siguientePieza.shape.map((row, y) => (
+                <div key={y} style={{ display: 'flex' }}>
+                  {row.map((cell, x) => (
+                    <div
+                      key={x}
+                      style={{
+                        width: '0.9rem',
+                        height: '0.9rem',
+                        backgroundColor: cell ? siguientePieza.color : 'transparent',
+                        borderRadius: '2px',
+                        border: cell ? '1px solid rgba(255,255,255,0.3)' : 'none'
+                      }}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div 
           className="board-container"
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          style={{ touchAction: isTouchDevice ? 'none' : 'auto' }} // Evita scroll solo en móviles
+          style={{ touchAction: isTouchDevice ? 'none' : 'auto' }}
         >
           <div className="board">
             {tableroVisual.map((row, y) => (
@@ -168,7 +211,6 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
           </div>
         </div>
 
-        {/* 🆕 MOSTRAR BOTONES SINO ES TÁCTIL, O INSTRUCCIONES SI LO ES 🆕 */}
         {!isTouchDevice ? (
           <div className="touch-controls">
             <button onClick={() => moverPieza(-1, 0)}>←</button>
@@ -178,7 +220,7 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
           </div>
         ) : (
            <div className="hint-text" style={{color: 'white', textAlign: 'center', marginTop: '10px', fontSize: '0.9rem'}}>
-             👆 Toca para rotar · Desliza para mover
+             👆 Toca para rotar · Desliza para mover · Arrastra abajo para bajar rápido
            </div>
         )}
 
@@ -267,5 +309,5 @@ export default function App() {
       {screen === 'game' && <GameScreen difficulty={gameDifficulty} onGoMenu={() => setScreen('menu')} />}
       {screen === 'ranking' && <RankingScreen onGoMenu={() => setScreen('menu')} />}
     </>
-  ) 
+  )
 }
