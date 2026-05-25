@@ -5,4 +5,4 @@
  * @property {string} playerName - Nombre del jugador.
  * @property {number} score - Puntuación obtenida.
  */
-export {};
+export {};  
