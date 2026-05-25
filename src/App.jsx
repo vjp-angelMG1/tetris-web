@@ -3,7 +3,6 @@ import './App.css'
 import { useTetris } from './hooks/useTetris'
 import { RankingService } from './services/data'
 
-// 🟢 FONDOS DE NATURALEZA (National Geographic Style) 🟢
 const backgrounds = [
   'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1920&q=80', 
   'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=1920&q=80', 
@@ -48,8 +47,7 @@ const MenuScreen = ({ onStartGame, onViewRanking }) => {
 }
 
 const GameScreen = ({ difficulty, onGoMenu }) => { 
-  // 🆕 Añadimos siguientePieza aquí
-  const { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza, siguientePieza } = useTetris(difficulty)
+  const { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza, siguientePieza, pausado, togglePausa } = useTetris(difficulty)
   const [showModal, setShowModal] = useState(false)
   const [playerName, setPlayerName] = useState('Jugador')
   const [saving, setSaving] = useState(false)
@@ -77,7 +75,7 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
   };
 
   const handleTouchMove = (e) => {
-    if (!isTouchDevice) return;
+    if (!isTouchDevice || pausado) return;
     e.preventDefault();
     
     const now = Date.now();
@@ -92,7 +90,7 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
   };
 
   const handleTouchEnd = (e) => {
-    if (!isTouchDevice) return;
+    if (!isTouchDevice || pausado) return;
     e.preventDefault();
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
@@ -149,54 +147,59 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
   return (
     <div className="game-screen" style={{ backgroundImage: `url(${currentBg})` }}>
       <div className="game-overlay">
+        
+        {/* BARRA SUPERIOR */}
         <div className="game-top-bar">
           <button className="btn-back" onClick={onGoMenu}>← Menú</button>
           <div className="timer-display">⏱️ {formatTime(time)}</div>
           <div className="score-display">Score: <strong>{puntuacion}</strong></div>
-          <div className="difficulty-badge">{difficulty === 'easy' ? 'Fácil' : difficulty === 'medium' ? 'Media' : 'Difícil'}</div>
-        </div>
-
-        {/* 🆕 CUADRO DE SIGUIENTE PIEZA 🆕 */}
-        <div style={{ display: 'flex', justifyContent: 'center', margin: '10px 0' }}>
-          <div style={{ 
-            background: 'rgba(0, 0, 0, 0.6)', 
-            padding: '10px 20px', 
-            borderRadius: '8px', 
-            border: '2px solid rgba(255, 255, 255, 0.2)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center'
-          }}>
-            <span style={{ color: 'white', fontSize: '0.8rem', marginBottom: '8px', fontWeight: 'bold' }}>SIGUIENTE</span>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '2rem' }}>
-              {siguientePieza.shape.map((row, y) => (
-                <div key={y} style={{ display: 'flex' }}>
-                  {row.map((cell, x) => (
-                    <div
-                      key={x}
-                      style={{
-                        width: '0.9rem',
-                        height: '0.9rem',
-                        backgroundColor: cell ? siguientePieza.color : 'transparent',
-                        borderRadius: '2px',
-                        border: cell ? '1px solid rgba(255,255,255,0.3)' : 'none'
-                      }}
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
+          <div className="difficulty-badge">
+            {difficulty === 'easy' ? 'Fácil' : difficulty === 'medium' ? 'Media' : 'Difícil'}
           </div>
         </div>
 
-        <div 
-          className="board-container"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          style={{ touchAction: isTouchDevice ? 'none' : 'auto' }}
-        >
-          <div className="board">
+        {/* ZONA DE JUEGO: Panel Izquierdo + Tablero */}
+        <div className="board-container">
+          
+          {/* COLUMNA IZQUIERDA: SIGUIENTE PIEZA + BOTÓN PAUSA */}
+          <div className="side-panel">
+            <div className="next-piece-box">
+              <span className="next-label">SIGUIENTE</span>
+              <div className="next-piece-grid">
+                {siguientePieza && siguientePieza.shape.map((row, y) => (
+                  <div key={y} style={{ display: 'flex' }}>
+                    {row.map((cell, x) => (
+                      <div
+                        key={x}
+                        className="next-cell"
+                        style={{
+                          backgroundColor: cell ? siguientePieza.color : 'transparent',
+                          borderRadius: '2px',
+                          border: cell ? '1px solid rgba(255,255,255,0.3)' : 'none'
+                        }}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button 
+              className={`pause-btn ${pausado ? 'active' : ''}`}
+              onClick={togglePausa} 
+            >
+              {pausado ? '▶ Reanudar' : '⏸ Pausa'}
+            </button>
+          </div>
+
+          {/* TABLERO CON OVERLAY DE PAUSA */}
+          <div 
+            className="board"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: isTouchDevice ? 'none' : 'auto' }}
+          >
             {tableroVisual.map((row, y) => (
               <div key={y} className="board-row">
                 {row.map((cell, x) => (
@@ -208,24 +211,33 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
                 ))}
               </div>
             ))}
+
+            {/* OVERLAY DE PAUSA */}
+            {pausado && (
+              <div className="pause-overlay">
+                <h2>⏸ PAUSA</h2>
+                <button className="resume-btn" onClick={togglePausa}>
+                  ▶ Reanudar
+                </button>
+              </div>
+            )}
           </div>
+
         </div>
 
-        {!isTouchDevice ? (
+        {/* CONTROLES FLECHA (Solo en PC) */}
+        {!isTouchDevice && (
           <div className="touch-controls">
             <button onClick={() => moverPieza(-1, 0)}>←</button>
             <button onClick={() => rotarPieza()}>↑</button>
             <button onClick={() => moverPieza(0, 1)}>↓</button>
             <button onClick={() => moverPieza(1, 0)}>→</button>
           </div>
-        ) : (
-           <div className="hint-text" style={{color: 'white', textAlign: 'center', marginTop: '10px', fontSize: '0.9rem'}}>
-             👆 Toca para rotar · Desliza para mover · Arrastra abajo para bajar rápido
-           </div>
         )}
 
       </div>
 
+      {/* MODAL GAME OVER */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-card">
