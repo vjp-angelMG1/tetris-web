@@ -267,5 +267,5 @@ export default function App() {
       {screen === 'game' && <GameScreen difficulty={gameDifficulty} onGoMenu={() => setScreen('menu')} />}
       {screen === 'ranking' && <RankingScreen onGoMenu={() => setScreen('menu')} />}
     </>
-  )
+  ) 
 }
