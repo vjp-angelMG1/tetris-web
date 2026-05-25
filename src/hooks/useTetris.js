@@ -27,7 +27,11 @@ export const useTetris = (difficulty = 'medium') => {
 
   const speeds = { easy: 1000, medium: 700, hard: 350 };
   const baseSpeed = speeds[difficulty] || speeds.medium;
-  const currentSpeed = Math.max(100, baseSpeed - (puntuacion * 1.5));
+  
+  // 🆕 FÓRMULA MEJORADA: Ahora el ritmo aumenta mucho más suave
+  // Antes: restaba 1.5ms por punto (con 4 líneas ya era rapidísimo)
+  // Ahora: resta 0.15ms por punto (costará unas 40 líneas llegar al límite)
+  const currentSpeed = Math.max(100, baseSpeed - (puntuacion * 0.15));
 
   const tableroRef = useRef(tablero);
   const piezaRef = useRef(pieza);
