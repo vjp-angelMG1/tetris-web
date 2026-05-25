@@ -14,22 +14,12 @@ const backgrounds = [
 
 const MenuScreen = ({ onStartGame, onViewRanking }) => {
   const [difficulty, setDifficulty] = useState('medium')
-  const [gameMode, setGameMode] = useState('normal') // 🆕 Estado para el modo de juego
 
   return (
     <div className="menu-screen">
       <div className="menu-card">
         <h1>Tetris <span>Web</span></h1>
         <p>Supervivencia y Naturaleza</p>
-
-        <div className="menu-section">
-          <h3>Selecciona Modo de Juego</h3> {/* 🆕 Selector de Modo */}
-          <div className="difficulty-selector">
-            <button className={gameMode === 'normal' ? 'diff-active' : ''} onClick={() => setGameMode('normal')}>Normal</button>
-            <button className={gameMode === 'recursivo' ? 'diff-active' : ''} onClick={() => setGameMode('recursivo')}>Recursivo</button>
-          </div>
-          <p className="hint-text">{gameMode === 'normal' ? 'Controles con botones en pantalla y teclado.' : 'Control táctil: desliza para mover, toca para rotar.'}</p>
-        </div>
 
         <div className="menu-section">
           <h3>Selecciona Dificultad Inicial</h3>
@@ -41,7 +31,7 @@ const MenuScreen = ({ onStartGame, onViewRanking }) => {
           <p className="hint-text">La velocidad aumentará progresivamente según tu puntuación.</p>
         </div>
 
-        <button className="btn-primary" onClick={() => onStartGame(difficulty, gameMode)}>🎮 Nuevo Juego</button>
+        <button className="btn-primary" onClick={() => onStartGame(difficulty)}>🎮 Nuevo Juego</button>
         <button className="btn-secondary" onClick={onViewRanking}>🏆 Ver Ranking</button>
       </div>
       
@@ -57,7 +47,7 @@ const MenuScreen = ({ onStartGame, onViewRanking }) => {
   )
 }
 
-const GameScreen = ({ difficulty, gameMode, onGoMenu }) => { // 🆕 Recibimos gameMode
+const GameScreen = ({ difficulty, onGoMenu }) => { 
   const { tableroVisual, puntuacion, gameOver, reiniciarJuego, moverPieza, rotarPieza } = useTetris(difficulty)
   const [showModal, setShowModal] = useState(false)
   const [playerName, setPlayerName] = useState('Jugador')
@@ -67,19 +57,28 @@ const GameScreen = ({ difficulty, gameMode, onGoMenu }) => { // 🆕 Recibimos g
   const [time, setTime] = useState(0)
   const timerRef = useRef(null)
 
-  // 🆕 LÓGICA TÁCTIL PARA MODO RECURSIVO 🆕
+  // 🆕 DETECCIÓN AUTOMÁTICA DE DISPOSITIVO TÁCTIL 🆕
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    // Detecta si el dispositivo tiene pantalla táctil (móvil o tablet)
+    const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    setIsTouchDevice(hasTouch);
+  }, []);
+
+  // 🆕 LÓGICA TÁCTIL (Solo se activará si isTouchDevice es true) 🆕
   const touchStartRef = useRef({ x: 0, y: 0 });
-  const UMBRAL_SWIPE = 30; // Píxeles mínimos para considerar un deslizamiento
+  const UMBRAL_SWIPE = 20; 
 
   const handleTouchStart = (e) => {
-    if (gameMode !== 'recursivo') return; // Solo funciona en modo recursivo
-    e.preventDefault(); // Evita el scroll del navegador
+    if (!isTouchDevice) return; // Si es PC, ignora el toque
+    e.preventDefault(); 
     const touch = e.touches[0];
     touchStartRef.current = { x: touch.clientX, y: touch.clientY };
   };
 
   const handleTouchEnd = (e) => {
-    if (gameMode !== 'recursivo') return;
+    if (!isTouchDevice) return; // Si es PC, ignora el toque
     e.preventDefault();
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartRef.current.x;
@@ -93,11 +92,9 @@ const GameScreen = ({ difficulty, gameMode, onGoMenu }) => { // 🆕 Recibimos g
 
     // Si el movimiento es largo, es un SWIPE (Mover pieza)
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-      // Movimiento Horizontal
       moverPieza(deltaX > 0 ? 1 : -1, 0);
     } else {
-      // Movimiento Vertical
-      if (deltaY > 0) moverPieza(0, 1); // Deslizar abajo
+      if (deltaY > 0) moverPieza(0, 1); 
     }
   };
 
@@ -150,14 +147,13 @@ const GameScreen = ({ difficulty, gameMode, onGoMenu }) => { // 🆕 Recibimos g
           <div className="difficulty-badge">{difficulty === 'easy' ? 'Fácil' : difficulty === 'medium' ? 'Media' : 'Difícil'}</div>
         </div>
 
-        <div className="board-container">
-          {/* 🆕 Añadidos eventos táctiles y touchAction condicional al tablero */}
-          <div 
-            className="board"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            style={{ touchAction: gameMode === 'recursivo' ? 'none' : 'auto' }} // Vital: evita scroll en modo recursivo
-          >
+        <div 
+          className="board-container"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          style={{ touchAction: isTouchDevice ? 'none' : 'auto' }} // Evita scroll solo en móviles
+        >
+          <div className="board">
             {tableroVisual.map((row, y) => (
               <div key={y} className="board-row">
                 {row.map((cell, x) => (
@@ -172,26 +168,22 @@ const GameScreen = ({ difficulty, gameMode, onGoMenu }) => { // 🆕 Recibimos g
           </div>
         </div>
 
-        {/* 🆕 Botones solo visibles en modo normal */}
-        {gameMode === 'normal' && (
+        {/* 🆕 MOSTRAR BOTONES SINO ES TÁCTIL, O INSTRUCCIONES SI LO ES 🆕 */}
+        {!isTouchDevice ? (
           <div className="touch-controls">
             <button onClick={() => moverPieza(-1, 0)}>←</button>
             <button onClick={() => rotarPieza()}>↑</button>
             <button onClick={() => moverPieza(0, 1)}>↓</button>
             <button onClick={() => moverPieza(1, 0)}>→</button>
           </div>
-        )}
-        
-        {/* 🆕 Indicador de modo recursivo */}
-        {gameMode === 'recursivo' && (
+        ) : (
            <div className="hint-text" style={{color: 'white', textAlign: 'center', marginTop: '10px', fontSize: '0.9rem'}}>
-             Desliza para mover · Toca para rotar
+             👆 Toca para rotar · Desliza para mover
            </div>
         )}
 
       </div>
 
-      {/* 🟢 MODAL GAME OVER 🟢 */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-card">
@@ -263,18 +255,16 @@ const RankingScreen = ({ onGoMenu }) => {
 export default function App() {
   const [screen, setScreen] = useState('menu')
   const [gameDifficulty, setGameDifficulty] = useState('medium')
-  const [gameMode, setGameMode] = useState('normal') // 🆕 Estado global del modo
 
-  const handleStartGame = (difficulty, mode) => {
+  const handleStartGame = (difficulty) => {
     setGameDifficulty(difficulty)
-    setGameMode(mode) // 🆕 Guardamos el modo seleccionado
     setScreen('game')
   }
 
   return (
     <>
       {screen === 'menu' && <MenuScreen onStartGame={handleStartGame} onViewRanking={() => setScreen('ranking')} />}
-      {screen === 'game' && <GameScreen difficulty={gameDifficulty} gameMode={gameMode} onGoMenu={() => setScreen('menu')} />}
+      {screen === 'game' && <GameScreen difficulty={gameDifficulty} onGoMenu={() => setScreen('menu')} />}
       {screen === 'ranking' && <RankingScreen onGoMenu={() => setScreen('menu')} />}
     </>
   )
