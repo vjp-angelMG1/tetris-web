@@ -148,7 +148,6 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
     <div className="game-screen" style={{ backgroundImage: `url(${currentBg})` }}>
       <div className="game-overlay">
         
-        {/* BARRA SUPERIOR */}
         <div className="game-top-bar">
           <button className="btn-back" onClick={onGoMenu}>← Menú</button>
           <div className="timer-display">⏱️ {formatTime(time)}</div>
@@ -158,10 +157,7 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
           </div>
         </div>
 
-        {/* ZONA DE JUEGO: Panel Izquierdo + Tablero */}
         <div className="board-container">
-          
-          {/* COLUMNA IZQUIERDA: SIGUIENTE PIEZA + BOTÓN PAUSA */}
           <div className="side-panel">
             <div className="next-piece-box">
               <span className="next-label">SIGUIENTE</span>
@@ -192,7 +188,6 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
             </button>
           </div>
 
-          {/* TABLERO CON OVERLAY DE PAUSA */}
           <div 
             className="board"
             onTouchStart={handleTouchStart}
@@ -212,7 +207,6 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
               </div>
             ))}
 
-            {/* OVERLAY DE PAUSA */}
             {pausado && (
               <div className="pause-overlay">
                 <h2>⏸ PAUSA</h2>
@@ -225,7 +219,6 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
 
         </div>
 
-        {/* CONTROLES FLECHA (Solo en PC) */}
         {!isTouchDevice && (
           <div className="touch-controls">
             <button onClick={() => moverPieza(-1, 0)}>←</button>
@@ -237,7 +230,6 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
 
       </div>
 
-      {/* MODAL GAME OVER */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-card">
@@ -269,16 +261,28 @@ const GameScreen = ({ difficulty, onGoMenu }) => {
   )
 }
 
+// 🆕 RANKING CON PAGINACIÓN 🆕
 const RankingScreen = ({ onGoMenu }) => {
   const [ranking, setRanking] = useState([])
+  const [lastDoc, setLastDoc] = useState(null)
+  const [hasMore, setHasMore] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const fetchRanking = async () => {
-      const data = await RankingService.getTop10()
-      setRanking(data)
-    }
-    fetchRanking()
+    fetchRanking(true)
   }, [])
+
+  const fetchRanking = async (isInitial = false) => {
+    setLoading(true)
+    // Si es la primera carga, no pasamos lastDoc. Si es siguiente página, pasamos el último.
+    const currentLastDoc = isInitial ? null : lastDoc
+    const result = await RankingService.getRanking(100, currentLastDoc)
+    
+    setRanking(prev => isInitial ? result.rankings : [...prev, ...result.rankings])
+    setLastDoc(result.lastDoc)
+    setHasMore(result.hasMore)
+    setLoading(false)
+  }
 
   return (
     <div className="ranking-screen">
@@ -290,7 +294,7 @@ const RankingScreen = ({ onGoMenu }) => {
         </div>
 
         <div className="ranking-list-full">
-          {ranking.length === 0 && <p className="empty-ranking">Aún no hay puntuaciones. ¡Sé el primero!</p>}
+          {ranking.length === 0 && !loading && <p className="empty-ranking">Aún no hay puntuaciones. ¡Sé el primero!</p>}
           <ol>
             {ranking.map((item, index) => (
               <li key={item.id} className={`rank-item rank-${index + 1}`}>
@@ -300,6 +304,19 @@ const RankingScreen = ({ onGoMenu }) => {
               </li>
             ))}
           </ol>
+          
+          {loading && <p style={{ textAlign: 'center', color: '#94a3b8', marginTop: '20px' }}>Cargando...</p>}
+
+          {/* Botón para cargar más */}
+          {hasMore && !loading && (
+            <button 
+              onClick={() => fetchRanking(false)} 
+              className="btn-secondary" 
+              style={{ marginTop: '20px' }}
+            >
+              Cargar más puntuaciones
+            </button>
+          )}
         </div>
       </div>
     </div>

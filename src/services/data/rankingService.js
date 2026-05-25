@@ -1,22 +1,38 @@
 import { db } from "../../config/firebase";
-import { collection, getDocs, addDoc, query, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, orderBy, limit, startAfter } from "firebase/firestore";
 
 /**
  * Servicio para gestionar las operaciones CRUD de los rankings en Firestore.
  */
 const RankingService = {
   /**
-   * Obtiene el Top 10 de puntuaciones de la base de datos.
-   * @returns {Promise<Array<import('../../models/Score').Score>>} Array de puntuaciones ordenadas.
+   * Obtiene una página de puntuaciones de la base de datos.
+   * @param {number} batchSize - Cantidad de elementos a cargar por página (por defecto 100).
+   * @param {Object|null} lastDoc - El último documento de la página anterior (para paginación).
+   * @returns {Promise<{rankings: Array, lastDoc: Object|null, hasMore: boolean}>} Resultado paginado.
    */
-  getTop10: async () => {
+  getRanking: async (batchSize = 100, lastDoc = null) => {
     try {
-      const q = query(collection(db, "rankings"), orderBy("score", "desc"), limit(10));
+      let q = query(collection(db, "rankings"), orderBy("score", "desc"), limit(batchSize));
+      
+      // Si existe un último documento, empezamos a buscar después de él
+      if (lastDoc) {
+        q = query(q, startAfter(lastDoc));
+      }
+
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const rankings = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // El nuevo último documento para la próxima llamada
+      const newLastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+      
+      // Si la cantidad de documentos devueltos es menor que el batchSize, significa que no hay más páginas
+      const hasMore = querySnapshot.docs.length === batchSize;
+
+      return { rankings, lastDoc: newLastDoc, hasMore };
     } catch (error) {
       console.error("Error obteniendo el ranking:", error);
-      return [];
+      return { rankings: [], lastDoc: null, hasMore: false };
     }
   },
 
